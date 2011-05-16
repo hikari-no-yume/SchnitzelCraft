@@ -1,6 +1,7 @@
 A custom Minecraft Classic server.
 
 Usage (with the source code in a folder called schnitzelcraft):
+
     python schnitzelcraft
 
 License
