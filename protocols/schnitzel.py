@@ -1,6 +1,6 @@
 import struct
 import timeit
-from constants import PacketIDs, PacketSizes, PacketFormats, Blocks
+from constants import PacketIDs, PacketSizes, PacketFormats, Blocks, TransparentBlocks
 from math import floor
 from util import notch_to_string, string_to_notch
 from twisted.internet.protocol import Protocol
@@ -50,10 +50,13 @@ class SchnitzelProtocol(Protocol):
                     break
                     
     def connectionLost(self, reason):
+        print "\"%s\" disconnected" % self.name
         if self.ID:
             del self.factory.protocols[self.ID]
             self.factory.sendPacketSkip(self, PacketIDs["DespawnPlayer"], self.ID)
             self.factory.sendMessage("%s disconnected" % self.name)
+            args = (self.name, self.x/32, self.y/32, self.z/32)
+            print "\"%s\" despawned (%s, %s, %s)" % args
                 
     def sendPacket(self, *packet):
         format = PacketFormats[packet[0]]
@@ -67,6 +70,11 @@ class SchnitzelProtocol(Protocol):
     def identify(self, data):
         packet = self.unpackPacket(data)
         self.name = notch_to_string(packet[2])
+        key = notch_to_string(packet[3])
+        if key != "--":
+            print "\"%s\" identified with verification key \"%s\"" % (self.name, key)
+        else:
+            print "\"%s\" identified without verification" % self.name
         
         # Send welcome
         name = string_to_notch(self.factory.config["name"])
@@ -88,7 +96,7 @@ class SchnitzelProtocol(Protocol):
         self.sendPacket(PacketIDs["LevelFinalize"], *size)
         
         # Acquire ID
-        for i in range(self.factory.maxplayers):
+        for i in range(self.factory.config["maxplayers"]):
             if not i in self.factory.protocols:
                 self.factory.protocols[i] = self
                 self.ID = i
@@ -118,6 +126,8 @@ class SchnitzelProtocol(Protocol):
         
         # Teleport client
         self.sendPacket(PacketIDs["PositionAndOrientation"], 255, *pos)
+        args = (self.name, self.x/32, self.y/32, self.z/32)
+        print "\"%s\" spawned (%s, %s, %s)" % args
         
     def posandort(self, data):
         packet = self.unpackPacket(data)
@@ -132,9 +142,22 @@ class SchnitzelProtocol(Protocol):
         packet = self.unpackPacket(data)
         x, y, z = packet[1:4]
         btype = packet[5] if packet[4] == 0x01 else Blocks["Air"]
+        below = self.factory.world.block(x, y-1, z)
+        
+        if btype == Blocks["Slab"] and below == Blocks["Slab"]:
+            self.sendPacket(PacketIDs["SetBlock"], x, y, z, Blocks["Air"])
+            y -= 1
+            btype = Blocks["DoubleSlab"]
         self.factory.world.block(x, y, z, btype)
-        pid = PacketIDs["SetBlock"]
-        self.factory.sendPacket(pid, x, y, z, btype)
+        self.factory.sendPacket(PacketIDs["SetBlock"], x, y, z, btype)
+        
+        if not btype in TransparentBlocks:
+            for i in range(y):
+                if self.factory.world.block(x, i, z) == Blocks["Grass"]:
+                    ntype = Blocks["Dirt"]
+                    self.factory.world.block(x, i, z, ntype)
+                    self.factory.sendPacket(PacketIDs["SetBlock"], x, i, z, ntype)
+                    break
         
     def message(self, data):
         packet = self.unpackPacket(data)

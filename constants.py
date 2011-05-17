@@ -41,5 +41,13 @@ Blocks = {
     "Air": 0x00,
     "Stone": 0x01,
     "Grass": 0x02,
-    "Dirt": 0x03
+    "Dirt": 0x03,
+    "Glass": 0x14,
+    "DoubleSlab": 0x2B,
+    "Slab": 0x2C
 }
+
+TransparentBlocks = [
+    Blocks["Air"],
+    Blocks["Glass"]
+]
