@@ -52,6 +52,7 @@ class SchnitzelFactory(ServerFactory):
         def save(self):
             self.world.save()
             self.sendMessage("World saved")
+            self.saveConfig()
         self.savetimer = LoopingCall(save, self)
         self.savetimer.start(self.config["saveinterval"], False)
         
