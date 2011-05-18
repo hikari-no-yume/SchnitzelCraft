@@ -22,6 +22,7 @@ class SchnitzelProtocol(Protocol):
         
         self.name = None
         self.ID = None
+        self.op = False
         
         self.x = 0
         self.y = 0
@@ -54,7 +55,10 @@ class SchnitzelProtocol(Protocol):
         if self.ID:
             del self.factory.protocols[self.ID]
             self.factory.sendPacketSkip(self, PacketIDs["DespawnPlayer"], self.ID)
-            self.factory.sendMessage("%s disconnected" % self.name)
+            if self.op:
+                self.factory.sendMessage("[OP] %s disconnected" % self.name)
+            else:
+                self.factory.sendMessage("%s disconnected" % self.name)
             args = (self.name, self.x/32, self.y/32, self.z/32)
             print "\"%s\" despawned (%s, %s, %s)" % args
                 
@@ -75,11 +79,14 @@ class SchnitzelProtocol(Protocol):
             print "\"%s\" identified with verification key \"%s\"" % (self.name, key)
         else:
             print "\"%s\" identified without verification" % self.name
+        if self.name in self.factory.config["ops"]:
+            self.op = True
         
         # Send welcome
         name = string_to_notch(self.factory.config["name"])
         motd = string_to_notch(self.factory.config["motd"])
-        self.sendPacket(PacketIDs["Identification"], 0x07, name, motd, 0x00)
+        op = 0x64 if self.op else 0x00
+        self.sendPacket(PacketIDs["Identification"], 0x07, name, motd, op)
         
         # Send level
         gzippedmap = self.factory.world.gzip(numblocks=True)
@@ -122,7 +129,10 @@ class SchnitzelProtocol(Protocol):
         pos = (self.x, self.y, self.z, self.yaw, self.pitch)
         pid = PacketIDs["SpawnPlayer"]
         self.factory.sendPacketSkip(self, pid, self.ID, name, *pos)
-        self.factory.sendMessage("%s joined the server" % self.name)
+        if self.op:
+            self.factory.sendMessage("[OP] %s joined the server" % self.name)
+        else:
+            self.factory.sendMessage("%s joined the server" % self.name)
         
         # Teleport client
         self.sendPacket(PacketIDs["PositionAndOrientation"], 255, *pos)
@@ -163,5 +173,5 @@ class SchnitzelProtocol(Protocol):
         packet = self.unpackPacket(data)
         msg = notch_to_string(packet[2])
         color = "&" + hex(self.ID % 16)[2]
-        msg = color + self.name + ":&f " + msg
+        msg = ("[OP] " if self.op else "") + color + self.name + ":&f " + msg
         self.factory.sendMessage(msg, self.ID)

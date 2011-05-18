@@ -1,0 +1,18 @@
+{
+    "motd": "My message-of-the-day", 
+    "name": "My server name", 
+    "ops": [
+        "CaseSensitivePlayerName1", 
+        "player2"
+    ], 
+    "maxplayers": 128, 
+    "public": true, 
+    "plugins": [
+        "CaseSensitivePluginName",
+        "plugin2"
+    ], 
+    "world": "world.dat", 
+    "saveinterval": 600, 
+    "port": 25565, 
+    "noverify": false
+}

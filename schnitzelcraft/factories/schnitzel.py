@@ -30,6 +30,8 @@ class SchnitzelFactory(ServerFactory):
         self.config["motd"] = ""
         self.config["maxplayers"] = 128
         self.config["saveinterval"] = 600 # 10 minutes
+        self.config["ops"] = []
+        self.config["plugins"] = []
         self.config["public"] = True
         self.config["noverify"] = False
         self.config["world"] = "world.dat"
