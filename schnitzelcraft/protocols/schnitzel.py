@@ -97,7 +97,7 @@ class SchnitzelProtocol(Protocol):
             chunk = gzippedmap[:1024].ljust(1024,'\0')
             gzippedmap = gzippedmap[1024:]
             currentlen += len(chunk)
-            pc = floor(currentlen/totallen * 255)
+            pc = int(currentlen/totallen * 255)
             self.sendPacket(PacketIDs["LevelDataChunk"], len(chunk), chunk, pc)
         size = self.factory.world.x, self.factory.world.y, self.factory.world.z
         self.sendPacket(PacketIDs["LevelFinalize"], *size)
