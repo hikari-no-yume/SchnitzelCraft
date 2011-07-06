@@ -1,6 +1,6 @@
 import struct
 import timeit
-from constants import PacketIDs, PacketSizes, PacketFormats, Blocks, TransparentBlocks
+from constants import PacketIDs, PacketSizes, PacketFormats, Blocks, TransparentBlocks, TreeShape
 from math import floor
 from util import notch_to_string, string_to_notch
 from twisted.internet.protocol import Protocol
@@ -154,7 +154,24 @@ class SchnitzelProtocol(Protocol):
         btype = packet[5] if packet[4] else Blocks["Air"]
         below = self.factory.world.block(x, y-1, z)
         
-        if btype == Blocks["Slab"] and below == Blocks["Slab"]:
+        if packet[4] and packet[5] == Blocks["RedMushroom"]:
+            block = self.factory.world.block(x, y, z)
+            if block == Blocks["BlueCloth"]:
+                btype = Blocks["StationaryWater"]
+            elif block == Blocks["OrangeCloth"]:
+                btype = Blocks["StationaryLava"]
+            elif block == Blocks["Sapling"]:
+                for i in TreeShape:
+                    coords = i[1][0]+x, i[1][1]+y, i[1][2]+z, i[0]
+                    if i is TreeShape[0]:
+                        x, y, z, btype = coords
+                    else:
+                        self.factory.world.block(*coords)
+                        self.factory.sendPacket(PacketIDs["SetBlock"], *coords)
+            elif block == Blocks["LimeCloth"]:
+                btype = Blocks["Grass"]
+                
+        elif btype == Blocks["Slab"] and below == Blocks["Slab"]:
             self.sendPacket(PacketIDs["SetBlock"], x, y, z, Blocks["Air"])
             y -= 1
             btype = Blocks["DoubleSlab"]
