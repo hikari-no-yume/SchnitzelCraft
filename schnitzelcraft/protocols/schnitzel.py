@@ -151,7 +151,7 @@ class SchnitzelProtocol(Protocol):
     def setblock(self, data):
         packet = self.unpackPacket(data)
         x, y, z = packet[1:4]
-        btype = packet[5] if packet[4] == 0x01 else Blocks["Air"]
+        btype = packet[5] if packet[4] else Blocks["Air"]
         below = self.factory.world.block(x, y-1, z)
         
         if btype == Blocks["Slab"] and below == Blocks["Slab"]:

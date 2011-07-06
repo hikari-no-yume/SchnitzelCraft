@@ -42,7 +42,7 @@ class World:
         print "Saved World to \"%s\"" % self.filename
     
     def block(self, x, y, z, block=None):
-        if block:
+        if block != None:
             self.blocks[y][z][x] = block
         else:
             try:
