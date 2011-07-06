@@ -151,10 +151,12 @@ class SchnitzelProtocol(Protocol):
     def setblock(self, data):
         packet = self.unpackPacket(data)
         x, y, z = packet[1:4]
-        btype = packet[5] if packet[4] else Blocks["Air"]
+        originalbtype = packet[5]
+        created = bool(packet[4])
+        btype = originalbtype if created else Blocks["Air"]
         below = self.factory.world.block(x, y-1, z)
         
-        if packet[4] and packet[5] == Blocks["RedMushroom"]:
+        if not created and originalbtype == Blocks["RedMushroom"]:
             block = self.factory.world.block(x, y, z)
             if block == Blocks["BlueCloth"]:
                 btype = Blocks["StationaryWater"]
