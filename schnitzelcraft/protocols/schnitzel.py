@@ -170,7 +170,7 @@ class SchnitzelProtocol(Protocol):
                     else:
                         self.factory.world.block(*coords)
                         self.factory.sendPacket(PacketIDs["SetBlock"], *coords)
-            elif block == Blocks["LimeCloth"]:
+            elif block == Blocks["LimeCloth"] or block == Blocks["Dirt"]:
                 btype = Blocks["Grass"]
                 
         elif btype == Blocks["Slab"] and below == Blocks["Slab"]:
