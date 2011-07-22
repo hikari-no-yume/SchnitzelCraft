@@ -32,6 +32,7 @@ class SchnitzelFactory(ServerFactory):
         self.config["saveinterval"] = 600 # 10 minutes
         self.config["ops"] = []
         self.config["plugins"] = []
+        self.config["magicwand"] = True
         self.config["public"] = True
         self.config["noverify"] = False
         self.config["world"] = "world.dat"
@@ -59,6 +60,7 @@ class SchnitzelFactory(ServerFactory):
         self.savetimer.start(self.config["saveinterval"], False)
         
         # Runtime vars
+        self.usedIDs = [] # List of Player IDs used (can be occupied by mobs)
         self.protocols = {} # Dictionary of Protocols indexed by ID
         
         print "SchnitzelFactory started"

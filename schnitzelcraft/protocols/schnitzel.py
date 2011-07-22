@@ -54,6 +54,7 @@ class SchnitzelProtocol(Protocol):
         print "\"%s\" disconnected" % self.name
         if self.ID:
             del self.factory.protocols[self.ID]
+            self.factory.usedIDs.remove(self.ID)
             self.factory.sendPacketSkip(self, PacketIDs["DespawnPlayer"], self.ID)
             if self.op:
                 self.factory.sendMessage("[OP] %s disconnected" % self.name)
@@ -104,8 +105,9 @@ class SchnitzelProtocol(Protocol):
         
         # Acquire ID
         for i in range(self.factory.config["maxplayers"]):
-            if not i in self.factory.protocols:
+            if not i in self.factory.usedIDs:
                 self.factory.protocols[i] = self
+                self.factory.usedIDs.append(i)
                 self.ID = i
                 break
         else:   
@@ -156,7 +158,8 @@ class SchnitzelProtocol(Protocol):
         btype = originalbtype if created else Blocks["Air"]
         below = self.factory.world.block(x, y-1, z)
         
-        if not created and originalbtype == Blocks["RedMushroom"]:
+        if (not created and originalbtype == Blocks["RedMushroom"]
+            and self.factory.config["magicwand"]):
             block = self.factory.world.block(x, y, z)
             if block == Blocks["BlueCloth"]:
                 btype = Blocks["StationaryWater"]

@@ -11,6 +11,7 @@
         "CaseSensitivePluginName",
         "plugin2"
     ], 
+    "magicwand": true,
     "world": "world.dat", 
     "saveinterval": 600, 
     "port": 25565, 
