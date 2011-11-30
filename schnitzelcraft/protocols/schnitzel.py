@@ -3,6 +3,7 @@ import timeit
 from constants import PacketIDs, PacketSizes, PacketFormats, Blocks, TransparentBlocks, TreeShape
 from math import floor
 from util import notch_to_string, string_to_notch
+from md5 import md5
 from twisted.internet.protocol import Protocol
 
 def unpack_byte(byte):
@@ -23,6 +24,7 @@ class SchnitzelProtocol(Protocol):
         self.name = None
         self.ID = None
         self.op = False
+        self.identified = False
         
         self.x = 0
         self.y = 0
@@ -40,7 +42,7 @@ class SchnitzelProtocol(Protocol):
                 if byte in self.handlers:
                     self.packetsize = PacketSizes[byte]
                 else:
-                    print "Error! Unhandled packet! (%s)" % byte
+                    # print "Error! Unhandled packet! (%s)" % byte
                     self.transport.loseConnection()
             else:
                 if len(self.buf) >= self.packetsize:
@@ -51,8 +53,8 @@ class SchnitzelProtocol(Protocol):
                     break
                     
     def connectionLost(self, reason):
-        print "\"%s\" disconnected" % self.name
-        if self.ID:
+        print "%s disconnected." % self.name
+        if self.ID and self.identified:
             del self.factory.protocols[self.ID]
             self.factory.usedIDs.remove(self.ID)
             self.factory.sendPacketSkip(self, PacketIDs["DespawnPlayer"], self.ID)
@@ -61,7 +63,6 @@ class SchnitzelProtocol(Protocol):
             else:
                 self.factory.sendMessage("%s disconnected" % self.name)
             args = (self.name, self.x/32, self.y/32, self.z/32)
-            print "\"%s\" despawned (%s, %s, %s)" % args
                 
     def sendPacket(self, *packet):
         format = PacketFormats[packet[0]]
@@ -76,12 +77,17 @@ class SchnitzelProtocol(Protocol):
         packet = self.unpackPacket(data)
         self.name = notch_to_string(packet[2])
         key = notch_to_string(packet[3])
-        if key != "--":
-            print "\"%s\" identified with verification key \"%s\"" % (self.name, key)
-        else:
-            print "\"%s\" identified without verification" % self.name
+        print "%s connected." % self.name
+        
+        if not self.factory.config["noverify"]:
+            if key != "--" and key == md5().hexdigest("%s%s" % (self.factory.salt, self.name)):
+                print " +- verified with minecraft.net"
+            else:
+                print " +- player is forging the username"
+        
         if self.name in self.factory.config["ops"]:
             self.op = True
+            print " +- player is op"
         
         # Send welcome
         name = string_to_notch(self.factory.config["name"])
@@ -113,6 +119,8 @@ class SchnitzelProtocol(Protocol):
         else:   
             print "wait... hold on a second, that wasn't supposed to happen"
             self.transport.loseConnection()
+
+        self.identified = True
         
         # Set position
         self.x = self.factory.world.x*16
@@ -139,7 +147,6 @@ class SchnitzelProtocol(Protocol):
         # Teleport client
         self.sendPacket(PacketIDs["PositionAndOrientation"], 255, *pos)
         args = (self.name, self.x/32, self.y/32, self.z/32)
-        print "\"%s\" spawned (%s, %s, %s)" % args
         
     def posandort(self, data):
         packet = self.unpackPacket(data)
