@@ -1,9 +1,10 @@
 from twisted.internet.protocol import ServerFactory
 from constants import PacketIDs
 from protocols.schnitzel import SchnitzelProtocol
-from util import notch_to_string, string_to_notch
+from util import notch_to_string, string_to_notch, generate_salt
 from world import World
 from twisted.internet.task import LoopingCall
+from heartbeat import Heartbeat
 import json
 
 class SchnitzelFactory(ServerFactory):
@@ -19,6 +20,7 @@ class SchnitzelFactory(ServerFactory):
             self.saveConfig()
         
         # World
+        self.url = ""
         self.world = World(self.config["world"])
         
         print "SchnitzelFactory created"
@@ -49,8 +51,16 @@ class SchnitzelFactory(ServerFactory):
         print "Saved Configuration to \"%s\"" % self.configname
         
     def startFactory(self):
+        # Runtime vars
+        self.usedIDs = [] # List of Player IDs used (can be occupied by mobs)
+        self.protocols = {} # Dictionary of Protocols indexed by ID
+        self.salt = generate_salt()
+        
         self.pingtimer = LoopingCall(self.sendPacket, PacketIDs["Ping"])
         self.pingtimer.start(1, False)
+
+        self.heart = Heartbeat(self)
+        self.heart.start()
         
         def save(self):
             self.world.save()
@@ -58,10 +68,6 @@ class SchnitzelFactory(ServerFactory):
             self.saveConfig()
         self.savetimer = LoopingCall(save, self)
         self.savetimer.start(self.config["saveinterval"], False)
-        
-        # Runtime vars
-        self.usedIDs = [] # List of Player IDs used (can be occupied by mobs)
-        self.protocols = {} # Dictionary of Protocols indexed by ID
         
         print "SchnitzelFactory started"
         
