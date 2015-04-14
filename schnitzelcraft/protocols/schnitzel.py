@@ -80,7 +80,7 @@ class SchnitzelProtocol(Protocol):
         print "%s connected." % self.name
         
         if not self.factory.config["noverify"]:
-            if key != "--" and key == md5().hexdigest("%s%s" % (self.factory.salt, self.name)):
+            if key != "--" and key == md5("%s%s" % (self.factory.salt, self.name)).hexdigest():
                 print " +- verified with minecraft.net"
             else:
                 print " +- player is forging the username"
