@@ -96,12 +96,12 @@ class SchnitzelProtocol(Protocol):
         self.sendPacket(PacketIDs["Identification"], 0x07, name, motd, op)
         
         # Send level
-        gzippedmap = self.factory.world.gzip(numblocks=True)
+        gzippedmap = self.factory.world.gzip(numblocks = True)
         totallen = len(gzippedmap)
         currentlen = 0
         self.sendPacket(PacketIDs["LevelInitialize"])
         while gzippedmap:
-            chunk = gzippedmap[:1024].ljust(1024,'\0')
+            chunk = gzippedmap[:1024].ljust(1024, '\0')
             gzippedmap = gzippedmap[1024:]
             currentlen += len(chunk)
             pc = int(currentlen/totallen * 255)

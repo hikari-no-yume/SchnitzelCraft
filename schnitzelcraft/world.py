@@ -51,12 +51,12 @@ class World:
                 return None
         
     def gzip(self, numblocks=False):
+        # StringIO() doesn't support `with` unfortunately
         out = StringIO()
-        gz = GzipFile("level.dat","wb",9,out)
-        if numblocks:
-            gz.write(struct.pack(">I",self.x*self.y*self.z))
-        gz.write(self.blocks.tostring())
-        gz.close()
+        with GzipFile("level.dat", "wb", 9, out) as gz:
+            if numblocks:
+                gz.write(struct.pack(">I", self.x * self.y * self.z))
+            gz.write(self.blocks.tostring())
         gzipped = out.getvalue()
         out.close()
         return gzipped
