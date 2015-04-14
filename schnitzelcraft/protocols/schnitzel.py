@@ -46,6 +46,7 @@ class SchnitzelProtocol(Protocol):
                     self.transport.loseConnection()
             else:
                 if len(self.buf) >= self.packetsize:
+                    byte = unpack_byte(self.buf[0])
                     self.handlers[byte](self.buf[:PacketSizes[byte]]) # Handle packet
                     self.buf = self.buf[PacketSizes[byte]:]
                     self.packetsize = None
