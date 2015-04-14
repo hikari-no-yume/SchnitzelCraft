@@ -2,8 +2,9 @@ import urllib
 from threading import Timer
 
 class Heartbeat(object):
-    def __init__(self, factory):
+    def __init__(self, factory, endpoint):
         self.factory = factory
+        self.endpoint = endpoint
         self.timer = None
     def start(self):
         self.beat()
@@ -11,7 +12,7 @@ class Heartbeat(object):
         self.timer.cancel()
     def beat(self):
         try:
-            fh = urllib.urlopen("http://www.minecraft.net/heartbeat.jsp", urllib.urlencode({
+            fh = urllib.urlopen(self.endpoint, urllib.urlencode({
                 "port": self.factory.config["port"],
                 "users": len(self.factory.protocols),
                 "max": self.factory.config["maxplayers"],

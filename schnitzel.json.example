@@ -6,7 +6,8 @@
         "player2"
     ], 
     "maxplayers": 128, 
-    "public": true, 
+    "public": true,
+    "heartbeat_endpoint": "http://www.classicube.net/server/heartbeat",
     "plugins": [
         "CaseSensitivePluginName",
         "plugin2"

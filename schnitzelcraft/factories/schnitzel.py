@@ -36,6 +36,7 @@ class SchnitzelFactory(ServerFactory):
             "plugins": [],
             "magicwand": True,
             "public": True,
+            "heartbeat_endpoint": "http://www.classicube.net/server/heartbeat",
             "noverify": False,
             "world": "world.dat"
         }
@@ -60,7 +61,7 @@ class SchnitzelFactory(ServerFactory):
         self.pingtimer = LoopingCall(self.sendPacket, PacketIDs["Ping"])
         self.pingtimer.start(1, False)
 
-        self.heart = Heartbeat(self)
+        self.heart = Heartbeat(self, self.config["heartbeat_endpoint"])
         self.heart.start()
         
         def save(self):
