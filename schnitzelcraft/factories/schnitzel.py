@@ -26,18 +26,19 @@ class SchnitzelFactory(ServerFactory):
         print "SchnitzelFactory created"
         
     def createConfig(self):
-        self.config = {}
-        self.config["port"] = 25565
-        self.config["name"] = "SchnitzelCraft"
-        self.config["motd"] = ""
-        self.config["maxplayers"] = 128
-        self.config["saveinterval"] = 600 # 10 minutes
-        self.config["ops"] = []
-        self.config["plugins"] = []
-        self.config["magicwand"] = True
-        self.config["public"] = True
-        self.config["noverify"] = False
-        self.config["world"] = "world.dat"
+        self.config = {
+            "port": 25565,
+            "name": "SchnitzelCraft",
+            "motd": "",
+            "maxplayers": 128,
+            "saveinterval": 600, # 10 minutes
+            "ops": [],
+            "plugins": [],
+            "magicwand": True,
+            "public": True,
+            "noverify": False,
+            "world": "world.dat"
+        }
         print "Created Configuration from defaults"
         
     def loadConfig(self):
